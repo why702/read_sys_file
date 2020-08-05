@@ -1,0 +1,23 @@
+*.opensdf
+*.sdf
+*.exe
+*.pdb
+*.txt
+*.csv
+*.png
+*.bmp
+*.zip
+*.7z
+*.obj
+*.log
+*.ipch
+*.tlog
+*.xlsx
+
+# partial
+/Partial_GUI_Tool/PartialTool/x64/*.*
+/Partial_GUI_Tool/PartialTool/IPPLib/x64/*.*
+#Partial_GUI_Tool/PartialTool.opensdf
+#Partial_GUI_Tool/PartialTool.sdf
+#Partial_GUI_Tool/*.exe
+#Partial_GUI_Tool/*.pdb

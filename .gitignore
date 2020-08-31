@@ -13,6 +13,8 @@
 *.ipch
 *.tlog
 *.xlsx
+/.idea/*.*
+/__pycache__/*.*
 
 # partial
 /Partial_GUI_Tool/PartialTool/x64/*.*

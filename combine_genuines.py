@@ -137,13 +137,13 @@ if __name__ == '__main__':
     #
     # combine_info_list(gen_data0, gen_data1, gen_data2, gen_data3, gen_data4, gen_data5, gen_data6, index_data0)
 
-    gen_file0 = "D:/PB_bat/2020_0728_R2311/dec_egistec_200x200_cardo_S3PG6_100K_R120/wash_org/genuines.txt"
-    gen_file1 = "D:/PB_bat/2020_0728_R2311/dec_egistec_200x200_cardo_S3PG6_100K_R120/wash_nor/genuines.txt"
+    gen_file0 = "D:/PB_bat/2020_0728_R2311/a42_par_94/p_org_md2/genuines.txt"
+    gen_file1 = "D:/PB_bat/2020_0728_R2311/a42_par_94/p_org_md2_all/genuines.txt"
 
     gen_data0 = parse_genuines(gen_file0)
     gen_data1 = parse_genuines(gen_file1)
 
-    index_file0 = "D:/data/partial/a42/wash/20040604_IPP_org/i.fpdbindex"
+    index_file0 = "D:/data/partial/a42/20200711_Partial_4DB/meg_p_org_md2.fpdbindex"
     index_data0 = parse_index(index_file0)
 
     combine_info(gen_data0, gen_data1, index_data0, index_data0)

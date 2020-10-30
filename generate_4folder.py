@@ -44,16 +44,17 @@ def remap(data, repo):
     return new_index
 
 
-def get_index(path):
+def get_index(path, ignore = []):
 
     files = []
+    ignore_count = 0
+    err_count = 0
+
     # r=root, d=directories, f = files
     for r, d, f in os.walk(path):
         for file in f:
             rp = "." + r.replace(path, '')
             files.append(os.path.join(rp, file))
-            # if file.find('.png') <= 0:
-            #     continue
             # files.append([os.path.join(r, file), int(file[0:2] + file[3:5] + file[6:8] + file[9:11] + file[12:14] + file[15:18])])
             # print(os.path.join(rp, file))
 
@@ -64,26 +65,42 @@ def get_index(path):
         r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(st|45d|90d|135d)\\([0-9]+\\)*(\S+).png"
     )
     expr_partial = re.compile(
-        r"(\S+)\\(\d+)\\(enroll|verify)\\(\S+)\\([0-9]+)\\(\S+).png"
+        r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(\S+)\\([0-9]+)\\(\S+).png"
+    )
+    expr_simple_partial = re.compile(
+        r"(\S+)\\(\d+)\\(enroll|verify|identify)\\([0-9]+)\\(\S+).png"
     )
     expr_enroll = re.compile(
-        r"(\S+)\\(\d+)\\(enroll)\\(\S+).png"
+        r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(\S+).png"
     )
 
     all_entries = list()
     persons = dict()
-    err_count = 0
 
     # print("Loading all entries.")
     for f in files:
         filename = f[2:]
 
-        if filename.find('mask') > 0 or filename.find('_0x800') > 0 or filename.find('_0x880') > 0:
+        need_ignore = False
+        if len(ignore) > 0:
+            for i in range(len(ignore)):
+                if f.find(ignore[i]) >= 0:
+                    need_ignore = True
+                    break
+
+        if need_ignore:
+            ignore_count += 1
+            continue
+        elif filename.find('mask') > 0 or filename.find('msk') > 0 or filename.find('_T.png') > 0 or filename.find('_RD_') > 0 or filename.find('_TRY_0_TRY_') > 0:
+            err_count += 1
+            continue
+        elif filename.find('_0x800') > 0 or filename.find('_0x880') > 0:
             err_count += 1
             continue
 
         m = expr.match(filename.lower())
         m_p = expr_partial.match(filename.lower())
+        m_sp = expr_simple_partial.match(filename.lower())
         m_e = expr_enroll.match(filename.lower())
 
         if (m):
@@ -95,30 +112,30 @@ def get_index(path):
             part = m.group(5)
 
             index_offset = 0
-            if verify == "verify" or verify == "identify": index_offset += 1000
-            if quality == "45d": index_offset += 20000
-            if quality == "90d": index_offset += 40000
-            if quality == "135d": index_offset += 60000
+            if verify == "verify" or verify == "identify": index_offset += 10000
+            if quality == "45d": index_offset += 200000
+            if quality == "90d": index_offset += 400000
+            if quality == "135d": index_offset += 600000
 
-            if part == "100\\": index_offset += 1000
-            if part == "95\\": index_offset += 2000
-            if part == "90\\": index_offset += 3000
-            if part == "85\\": index_offset += 4000
-            if part == "80\\": index_offset += 5000
-            if part == "75\\": index_offset += 6000
-            if part == "70\\": index_offset += 7000
-            if part == "65\\": index_offset += 8000
-            if part == "60\\": index_offset += 9000
-            if part == "55\\": index_offset += 10000
-            if part == "50\\": index_offset += 11000
-            if part == "45\\": index_offset += 12000
-            if part == "40\\": index_offset += 13000
-            if part == "35\\": index_offset += 14000
-            if part == "30\\": index_offset += 15000
-            if part == "25\\": index_offset += 16000
-            if part == "20\\": index_offset += 17000
-            if part == "15\\": index_offset += 18000
-            if part == "10\\": index_offset += 19000
+            if part == "100\\": index_offset += 10000
+            if part == "95\\": index_offset += 20000
+            if part == "90\\": index_offset += 30000
+            if part == "85\\": index_offset += 40000
+            if part == "80\\": index_offset += 50000
+            if part == "75\\": index_offset += 60000
+            if part == "70\\": index_offset += 70000
+            if part == "65\\": index_offset += 80000
+            if part == "60\\": index_offset += 90000
+            if part == "55\\": index_offset += 100000
+            if part == "50\\": index_offset += 110000
+            if part == "45\\": index_offset += 120000
+            if part == "40\\": index_offset += 130000
+            if part == "35\\": index_offset += 140000
+            if part == "30\\": index_offset += 150000
+            if part == "25\\": index_offset += 160000
+            if part == "20\\": index_offset += 170000
+            if part == "15\\": index_offset += 180000
+            if part == "10\\": index_offset += 190000
 
             all_entries.append((person, finger, index_offset, filename))
         elif (m_p):
@@ -129,42 +146,126 @@ def get_index(path):
             part = m_p.group(5)
 
             index_offset = 0
-            if verify == "verify": index_offset += 1000
+            if verify == "verify": index_offset += 10000
 
-            if cond == "dry" or cond == "wash": index_offset += 20000
-            if cond == "normal_on" or cond == "on" or cond == "normal": index_offset += 40000
-            if cond == "normal_under" or cond == "under": index_offset += 60000
-            if cond == "normal_walking" or cond == "walking" or cond == "walk" or cond == "normal_walk" or cond == "walk_on": index_offset += 80000
-            if cond == "wet" or cond == "wet_on": index_offset += 100000
-            if cond == "lotion": index_offset += 120000
-            if cond == "normal_solar" or cond == "solar" or cond == "sunlight": index_offset += 140000
+            if cond == "dry" or cond == "wash": index_offset += 200000
+            if cond == "normal_on" or cond == "on" or cond == "normal": index_offset += 400000
+            if cond == "normal_under" or cond == "under": index_offset += 600000
+            if cond == "normal_walking" or cond == "walking" or cond == "walk" or cond == "normal_walk" or cond == "walk_on": index_offset += 800000
+            if cond == "wet" or cond == "wet_on": index_offset += 1000000
+            if cond == "lotion": index_offset += 1200000
+            if cond == "normal_solar" or cond == "solar" or cond == "sunlight": index_offset += 1400000
 
-            if part == "100": index_offset += 1000
-            if part == "95": index_offset += 2000
-            if part == "90": index_offset += 3000
-            if part == "85": index_offset += 4000
-            if part == "80": index_offset += 5000
-            if part == "75": index_offset += 6000
-            if part == "70": index_offset += 7000
-            if part == "65": index_offset += 8000
-            if part == "60": index_offset += 9000
-            if part == "55": index_offset += 10000
-            if part == "50": index_offset += 11000
-            if part == "45": index_offset += 12000
-            if part == "40": index_offset += 13000
-            if part == "35": index_offset += 14000
-            if part == "30": index_offset += 15000
-            if part == "25": index_offset += 16000
-            if part == "20": index_offset += 17000
-            if part == "15": index_offset += 18000
-            if part == "10": index_offset += 19000
+            if part == "100": index_offset += 10000
+            if part == "95": index_offset += 20000
+            if part == "90": index_offset += 30000
+            if part == "85": index_offset += 40000
+            if part == "80": index_offset += 50000
+            if part == "75": index_offset += 60000
+            if part == "70": index_offset += 70000
+            if part == "65": index_offset += 80000
+            if part == "60": index_offset += 90000
+            if part == "55": index_offset += 100000
+            if part == "50": index_offset += 110000
+            if part == "45": index_offset += 120000
+            if part == "40": index_offset += 130000
+            if part == "35": index_offset += 140000
+            if part == "30": index_offset += 150000
+            if part == "25": index_offset += 160000
+            if part == "20": index_offset += 170000
+            if part == "15": index_offset += 180000
+            if part == "10": index_offset += 190000
+
+            all_entries.append((person, finger, index_offset, filename))
+        elif (m_sp):
+            person = m_sp.group(1)
+            finger = int(m_sp.group(2))
+            verify = m_sp.group(3)
+            part = m_sp.group(4)
+
+            index_offset = 0
+            if verify == "verify": index_offset += 10000
+
+            if part == "100": index_offset += 10000
+            if part == "95": index_offset += 20000
+            if part == "90": index_offset += 30000
+            if part == "85": index_offset += 40000
+            if part == "80": index_offset += 50000
+            if part == "75": index_offset += 60000
+            if part == "70": index_offset += 70000
+            if part == "65": index_offset += 80000
+            if part == "60": index_offset += 90000
+            if part == "55": index_offset += 100000
+            if part == "50": index_offset += 110000
+            if part == "45": index_offset += 120000
+            if part == "40": index_offset += 130000
+            if part == "35": index_offset += 140000
+            if part == "30": index_offset += 150000
+            if part == "25": index_offset += 160000
+            if part == "20": index_offset += 170000
+            if part == "15": index_offset += 180000
+            if part == "10": index_offset += 190000
 
             all_entries.append((person, finger, index_offset, filename))
         elif (m_e):
             person = m_e.group(1)
             finger = int(m_e.group(2))
+            verify = m_e.group(3)
             index_offset = 0
+            if verify == "verify" or verify == "identify": index_offset += 10000
+
             all_entries.append((person, finger, index_offset, filename))
+
+    # # inverse index
+    # for i in range(len(all_entries)):
+    #     index_file = list(all_entries[i])
+    #     if index_file[1] != 5 and index_file[1] != 6:
+    #         index_file[1] = index_file[1] + 7
+    #     all_entries[i] = tuple(index_file)
+
+    # # check repeatedly enrollment
+    # expr_repeat_enroll = re.compile(
+    #     r"(\S+)\\(\S+).png"
+    # )
+    tmp_person = ""
+    tmp_finger = -1
+    # enroll_list = [] * 17
+    enroll_count = 0
+    for i in range(len(all_entries)):
+        if all_entries[i][2] != 0:
+            continue
+        if tmp_person == "" or tmp_finger == -1:
+            tmp_person = all_entries[i][0]
+            tmp_finger = all_entries[i][1]
+
+        if tmp_person == all_entries[i][0] and tmp_finger == all_entries[i][1] and all_entries[i][3].find(
+                "enroll") >= 0:
+            enroll_count += 1
+
+        if i + 1 < len(all_entries) and ((all_entries[i][3].find("enroll") >= 0 and all_entries[i + 1][3].find("enroll") < 0) or (tmp_person != all_entries[i +1][0] and tmp_finger != all_entries[i+1][1])):
+            if enroll_count != 17:
+                print("\nERROR!\tperson {}\tfinger {}\tenroll_count {} != 17\n".format(tmp_person, tmp_finger, enroll_count))
+                tmp_person = ""
+                tmp_finger = -1
+                enroll_count = 0
+                pass
+        # if all_entries[i][3].find("_c01_"): enroll_list[0] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c02_"): enroll_list[1] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c03_"): enroll_list[2] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c04_"): enroll_list[3] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c05_"): enroll_list[4] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c06_"): enroll_list[5] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c07_"): enroll_list[6] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c08_"): enroll_list[7] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c09_"): enroll_list[8] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c10_"): enroll_list[9] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c11_"): enroll_list[10] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c12_"): enroll_list[11] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c13_"): enroll_list[12] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c14_"): enroll_list[13] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c15_"): enroll_list[14] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c16_"): enroll_list[15] = all_entries[i][3]
+        # elif all_entries[i][3].find("_c17_"): enroll_list[16] = all_entries[i][3]
 
     # print("Sorting all entries.")
     all_entries.sort()
@@ -207,7 +308,7 @@ def get_index(path):
         output_list.append(output)
         output_update_list.append(output_update)
 
-    return output_list, output_update_list
+    return output_list, output_update_list, ignore_count, err_count
 
 
 if __name__ == '__main__':
@@ -216,7 +317,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     path = args.dir
-    _, output_update_list = get_index(path)
+    ignore = ["normal_edge", "on", "under", "08-24-10-59-40-372", "08-24-10-59-41-726"]
+    _, output_update_list, ignore_count, err_count = get_index(path, ignore)
 
     print("# This file contains information about a fingerprint database.")
     print(
@@ -239,7 +341,7 @@ if __name__ == '__main__':
     print("# End of attributes")
     print("# This file was generated by: MixedFingers")
     print(
-        "# The Python command that generated the fpdbindex can be found in the input file ="
+        "# The Python command that generated the fpdbindex can be found in the input file"
     )
     print("#")
     print("# Columns (tab separated):")
@@ -253,5 +355,8 @@ if __name__ == '__main__':
     print("#")
     for i in range(len(output_update_list)):
         print(output_update_list[i])
+        pass
 
-    # print("#len = {}".format(len(output_update_list)))
+    print("#len = {}".format(len(output_update_list)))
+    print("#ignore_count = {}".format(ignore_count))
+    print("#err_count = {}".format(err_count))

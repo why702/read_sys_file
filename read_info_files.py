@@ -20,10 +20,24 @@ def list_files(dir_path, csv_file):
                 print(file_path)
 
                 f = open(file_path)
-                fp.writelines(file_path + "\n")
+
+                output = file_path
                 for line in f:
                     if (line.find('FRR') != -1 or line.find('FAR') != -1) and line.find('finger detect') == -1 and line.find('latent detect') == -1 and line.find('PAD') == -1:
-                        fp.writelines(line)
+                        pos1 = line.find('FRR')
+                        pos2 = line.find('FAR')
+                        pos3 = line.find(')')
+                        if pos1 != -1 and pos3 != -1:
+                            output += "\t" + line[pos1:pos3]
+                        if pos2 != -1 and pos3 != -1:
+                            output += "\t" + line[pos2:pos3]
+                output = output.replace(" ", "\t")
+                output = output.replace("(", "")
+                output = output.replace(")", "")
+                output = output.replace(dir_path, "")
+                output = output.replace("\info.txt", "")
+                output = output.replace("\\", "")
+                fp.writelines(output + "\n")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

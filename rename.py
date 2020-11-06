@@ -18,4 +18,4 @@ if __name__ == '__main__':
                 dst_folder = os.path.join(r, '45d')
                 move(src_folder, dst_folder)
                 print('{} => {}', src_folder, dst_folder)
-                passit 
+                pass

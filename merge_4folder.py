@@ -99,8 +99,6 @@ if __name__ == '__main__':
     list1, _, _, _ = generate_4folder.get_index(path1, ignore=ignore)
 
     if path_root == "":
-        folder0 = os.path.abspath(path0).split('\\')
-        folder0 = folder0[len(folder0) - 1]
         folder1 = os.path.abspath(path1).split('\\')
         folder1 = folder1[len(folder1) - 1]
     else:

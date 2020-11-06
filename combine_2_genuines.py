@@ -52,6 +52,24 @@ def find_gen_info(gen_data, id):
         if info['verify'] == id:
             return info
 
+def find_gen_info_sn(gen_data, index_data, id, gen_data1, index_data1):
+    # find path
+    path = find_path(index_data, id)
+
+    #find sn
+    sn = path[path.rfind('\\') + 1:path.rfind('_00000000_')]
+
+    id1 = ''
+    for idx in index_data1:
+        if idx['path'].find(sn) >= 0:
+            id1 = idx['id']
+            break
+
+    for info in gen_data:
+        if info['verify'] == id1:
+            return info
+
+
 expr = re.compile(
     r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(st|45d|90d|135d)\\([0-9]+\\)*(\S+).png"
 )
@@ -68,17 +86,49 @@ expr_enroll = re.compile(
 def combine_info(gen_data0, gen_data1, index_data0, index_data1):
     with open('gen_compare.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['enroll', 'verify', 'match', 'score', 'enroll1', 'verify1', 'match', 'score1', 'path', 'compare', 'same'])
+        writer.writerow(['enroll0', 'verify0', 'match0', 'score0', 'path0', 'enroll1', 'verify1', 'match', 'score1', 'path1', 'compare', 'same', 'path'])
 
         for info0 in gen_data0:
-            verify_id = info0['verify']
+            verify_id0 = info0['verify']
+
+            # # find path
+            # path = find_path(index_data0, verify_id)
+            #
+            # # # find other info
+            # # info1 = find_gen_info(gen_data1, verify_id)
+            # # if info1 is None:
+            # #     continue
+
+            # info1 = find_gen_info_sn(gen_data0, index_data0, verify_id, gen_data1, index_data1)
+            # if info1 is None:
+            #     continue
 
             # find path
-            path = find_path(index_data0, verify_id)
+            path0 = find_path(index_data0, verify_id0)
+            path1 = ''
+            info1 = None
 
-            # find other info
-            info1 = find_gen_info(gen_data1, verify_id)
+            # find sn
+            sn = path0[path0.rfind('\\') + 1:path0.rfind('_00000000_')]
 
+            if sn == '20200929_185505_637':
+                print()
+
+            # find id1
+            verify_id1 = []
+            verify_id1_path = []
+            for idx in index_data1:
+                if idx['path'].find(sn) >= 0:
+                    verify_id1.append(idx['id'])
+                    verify_id1_path.append(idx['path'])
+
+            # find info1
+            for info in gen_data1:
+                for i in range(len(verify_id1)):
+                    if info['verify'] == verify_id1[i]:
+                        info1 = info
+                        path1 = verify_id1_path[i]
+                        break
             if info1 is None:
                 continue
 
@@ -88,7 +138,7 @@ def combine_info(gen_data0, gen_data1, index_data0, index_data1):
             else:
                 same = 0
 
-            writer.writerow([info0['enroll'], info0['verify'], info0['match'], info0['score'], info1['enroll'], info1['verify'], info1['match'], info1['score'], compare, same, path])
+            writer.writerow([info0['enroll'], info0['verify'], info0['match'], info0['score'], path0, info1['enroll'], info1['verify'], info1['match'], info1['score'], path1, compare, same])
     pass
 
 
@@ -159,50 +209,50 @@ def analysis_info(gen_data0, index_data0, output_file):
             if info0['match'] == "1":
                 fr = 0
 
-            # writer.writerow(
-            #     [info0['enroll'], info0['verify'], info0['match'], info0['score'], path, person, finger, verify, quality, cond, part, fr])
+            writer.writerow(
+                [info0['enroll'], info0['verify'], info0['match'], info0['score'], path, person, finger, verify, quality, cond, part, fr])
 
-            if part != '100':
-                id = str(person) + "\t" + str(finger) + "\t0" + str(part)
-            else:
-                id = str(person) + "\t" + str(finger) + "\t" + str(part)
-
-            saved = 0
-            for d in dicts:
-                if d['id'] == id:
-                    d['sum'] += fr
-                    d['count'] += 1
-                    saved = 1
-
-            if saved == 0:
-                dicts.append({'id': id, 'person': person, 'finger': finger, 'part': part, 'sum': fr, 'count': 1})
-
-        dicts.sort(key=lambda k: k['id'])
-
-        d50_sum = 0
-        d50_count = 0
-        d75_sum = 0
-        d75_count = 0
-        d90_sum = 0
-        d90_count = 0
-        d100_sum = 0
-        d100_count = 0
-        for i in range(0,len(dicts),4):
-            d50 = dicts[i]['sum'] / dicts[i]['count']
-            d75 = dicts[i+1]['sum'] / dicts[i+1]['count']
-            d90 = dicts[i+2]['sum'] / dicts[i+2]['count']
-            d100 = dicts[i+3]['sum'] / dicts[i+3]['count']
-            writer.writerow([dicts[i]['person'], dicts[i]['finger'], d50, d75, d90, d100, dicts[i]['sum'], dicts[i]['count'], dicts[i+1]['sum'], dicts[i+1]['count'], dicts[i+2]['sum'], dicts[i+2]['count'], dicts[i+3]['sum'], dicts[i+3]['count']])
-            d50_sum += dicts[i]['sum']
-            d50_count += dicts[i]['count']
-            d75_sum += dicts[i + 1]['sum']
-            d75_count += dicts[i + 1]['count']
-            d90_sum += dicts[i + 2]['sum']
-            d90_count += dicts[i + 2]['count']
-            d100_sum += dicts[i + 3]['sum']
-            d100_count += dicts[i + 3]['count']
-
-        writer.writerow(['person','finger', d50_sum / d50_count, d75_sum / d75_count, d90_sum / d90_count, d100_sum / d100_count])
+        #     if part != '100':
+        #         id = str(person) + "\t" + str(finger) + "\t0" + str(part)
+        #     else:
+        #         id = str(person) + "\t" + str(finger) + "\t" + str(part)
+        #
+        #     saved = 0
+        #     for d in dicts:
+        #         if d['id'] == id:
+        #             d['sum'] += fr
+        #             d['count'] += 1
+        #             saved = 1
+        #
+        #     if saved == 0:
+        #         dicts.append({'id': id, 'person': person, 'finger': finger, 'part': part, 'sum': fr, 'count': 1})
+        #
+        # dicts.sort(key=lambda k: k['id'])
+        #
+        # d50_sum = 0
+        # d50_count = 0
+        # d75_sum = 0
+        # d75_count = 0
+        # d90_sum = 0
+        # d90_count = 0
+        # d100_sum = 0
+        # d100_count = 0
+        # for i in range(0,len(dicts),4):
+        #     d50 = dicts[i]['sum'] / dicts[i]['count']
+        #     d75 = dicts[i+1]['sum'] / dicts[i+1]['count']
+        #     d90 = dicts[i+2]['sum'] / dicts[i+2]['count']
+        #     d100 = dicts[i+3]['sum'] / dicts[i+3]['count']
+        #     writer.writerow([dicts[i]['person'], dicts[i]['finger'], d50, d75, d90, d100, dicts[i]['sum'], dicts[i]['count'], dicts[i+1]['sum'], dicts[i+1]['count'], dicts[i+2]['sum'], dicts[i+2]['count'], dicts[i+3]['sum'], dicts[i+3]['count']])
+        #     d50_sum += dicts[i]['sum']
+        #     d50_count += dicts[i]['count']
+        #     d75_sum += dicts[i + 1]['sum']
+        #     d75_count += dicts[i + 1]['count']
+        #     d90_sum += dicts[i + 2]['sum']
+        #     d90_count += dicts[i + 2]['count']
+        #     d100_sum += dicts[i + 3]['sum']
+        #     d100_count += dicts[i + 3]['count']
+        #
+        # writer.writerow(['person','finger', d50_sum / d50_count, d75_sum / d75_count, d90_sum / d90_count, d100_sum / d100_count])
     pass
 
 def combine_info_list(gen_data0, gen_data1, gen_data2, gen_data3, gen_data4, gen_data5, gen_data6, index_data0):
@@ -243,17 +293,21 @@ def combine_info_list(gen_data0, gen_data1, gen_data2, gen_data3, gen_data4, gen
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("path0", help="directory to parse")
-    parser.add_argument("path1", help="directory to parse")
-    parser.add_argument("filepath", help="directory to parse", default="")
+    parser.add_argument("gen_path0", help="directory to parse")
+    parser.add_argument("gen_path1", help="directory to parse")
+    parser.add_argument("index_path0", help="directory to parse")
+    parser.add_argument("index_path1", help="directory to parse")
     args = parser.parse_args()
 
-    gen_file = args.path0
-    index_file = args.path1
-    output_file = args.filepath
+    gen_file0 = args.gen_path0
+    gen_file1 = args.gen_path1
+    index_file0 = args.index_path0
+    index_file1 = args.index_path1
 
-    gen_data0 = parse_genuines(gen_file)
-    index_data0 = parse_index(index_file)
+    gen_data0 = parse_genuines(gen_file0)
+    gen_data1 = parse_genuines(gen_file1)
+    index_data0 = parse_index(index_file0)
+    index_data1 = parse_index(index_file1)
 
-    analysis_info(gen_data0, index_data0, output_file)
+    combine_info(gen_data0, gen_data1, index_data0, index_data1)
     pass

@@ -243,7 +243,7 @@ def get_index(path, ignore = []):
             enroll_count += 1
 
         if i + 1 < len(all_entries) and ((all_entries[i][3].find("enroll") >= 0 and all_entries[i + 1][3].find("enroll") < 0) or (tmp_person != all_entries[i +1][0] and tmp_finger != all_entries[i+1][1])):
-            if enroll_count != 17:
+            if enroll_count != 15:
                 print("\nERROR!\tperson {}\tfinger {}\tenroll_count {} != 17\n".format(tmp_person, tmp_finger, enroll_count))
                 tmp_person = ""
                 tmp_finger = -1

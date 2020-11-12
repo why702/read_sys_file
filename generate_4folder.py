@@ -327,7 +327,7 @@ if __name__ == '__main__':
     print("#")
     print("#")
     print("# Database attributes:")
-    print("## fingerIdsRegistered=0,5,6")
+    print("## fingerIdsRegistered=0,1,2,3,4,5,6,7,8,9,10,11\n")
     print("## fingerTypesRegistered=0")
     print("## idFirstVerificationSample=1000")
     print("## idPersonBottom=1")
@@ -354,7 +354,14 @@ if __name__ == '__main__':
     print("# 				Image file relative path")
     print("#")
     for i in range(len(output_update_list)):
-        print(output_update_list[i])
+
+        if output_update_list[i].find("_TRY_") >= 0:
+            try_num = int(output_update_list[i][output_update_list[i].find("_TRY_") +
+                                5:output_update_list[i].find("_TRY_") + 6])
+            if try_num >= 0:
+                print(output_update_list[i] + " : verify_count={}".format(try_num))
+        else:
+            print(output_update_list[i])
         pass
 
     print("#len = {}".format(len(output_update_list)))

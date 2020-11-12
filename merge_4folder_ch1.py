@@ -156,6 +156,10 @@ if __name__ == '__main__':
             info0, info1, info2, info3, info4 = list0[i].split('\t')
             info5, info6, info7, info8, info9 = list1[i].split('\t')
 
+            info4_ = None
+            if i < len(list0) - 1:
+                _, _, _, _, info4_ = list0[i + 1].split('\t')
+
             if info4.find('20201002_142457_673') >= 0:
                 print()
                 pass
@@ -185,6 +189,12 @@ if __name__ == '__main__':
                 if info4.find("_TRY_") >= 0:
                     try_num = int(info4[info4.find("_TRY_") +
                                         5:info4.find("_TRY_") + 6])
+
+                    try_num_ = -1
+                    if info4_ is not None:
+                        try_num_ = int(info4_[info4_.find("_TRY_") +
+                                              5:info4_.find("_TRY_") + 6])
+
                     if try_num == 0:
                         verify_count = 0
 
@@ -194,7 +204,7 @@ if __name__ == '__main__':
                                 " : verify_count={}\n".format(verify_count))
                             verify_count += 1
                         elif log.dict['irl'] == 'None' or log.dict[
-                                'rls'] == 'None' or log.dict['sl'] == 'None':
+                            'rls'] == 'None' or log.dict['sl'] == 'None':
                             if int(log.dict['egp']) >= try0_thresh:
                                 if int(log.dict['egp']
                                        ) >= try0_learning_thresh:
@@ -231,6 +241,65 @@ if __name__ == '__main__':
                                         " : verify_count={} : skip_dyn_update\n"
                                         .format(verify_count))
                                     verify_count += 1
+
+                        #only try0
+                        if try_num_ == 0:
+                            if log.dict['egp'] == 'None':
+                                fp.write(
+                                    output1 +
+                                    " : verify_count={}\n".format(verify_count))
+                                verify_count += 1
+                            elif log.dict['irl'] == 'None' or log.dict[
+                                'rls'] == 'None' or log.dict['sl'] == 'None':
+                                if int(log.dict['egp']) >= try1_thresh:
+                                    if int(log.dict['egp']
+                                           ) >= try1_learning_thresh:
+                                        fp.write(output1 +
+                                                 " : verify_count={}\n".format(
+                                                     verify_count))
+                                        verify_count += 1
+                                    else:
+                                        fp.write(
+                                            output1 +
+                                            " : verify_count={} : skip_dyn_update\n"
+                                            .format(verify_count))
+                                        verify_count += 1
+                            else:
+                                if int(log.dict['irl']) > 0 and (
+                                        int(log.dict['rls']) > 50
+                                        or int(log.dict['sl']) > 90):
+                                    if sdk == 1:
+                                        fp.write(
+                                            output1 +
+                                            " : verify_count={} : skip_dyn_update\n"
+                                            .format(verify_count + 1))
+                                        verify_count += 1
+                                    else:
+                                        if int(log.dict['egp']
+                                               ) >= try1_learning_thresh:
+                                            fp.write(output1 +
+                                                     " : verify_count={}\n".format(
+                                                         verify_count))
+                                            verify_count += 1
+                                        else:
+                                            fp.write(
+                                                output1 +
+                                                " : verify_count={} : skip_dyn_update\n"
+                                                .format(verify_count))
+                                            verify_count += 1
+                                elif int(log.dict['egp']) >= try1_thresh:
+                                    if int(log.dict['egp']
+                                           ) >= try1_learning_thresh:
+                                        fp.write(output1 +
+                                                 " : verify_count={}\n".format(
+                                                     verify_count))
+                                        verify_count += 1
+                                    else:
+                                        fp.write(
+                                            output1 +
+                                            " : verify_count={} : skip_dyn_update\n"
+                                            .format(verify_count))
+                                        verify_count += 1
                     else:  # try 1,2 ...
                         if log.dict['egp'] == 'None':
                             fp.write(
@@ -238,7 +307,7 @@ if __name__ == '__main__':
                                 " : verify_count={}\n".format(verify_count))
                             verify_count += 1
                         elif log.dict['irl'] == 'None' or log.dict[
-                                'rls'] == 'None' or log.dict['sl'] == 'None':
+                            'rls'] == 'None' or log.dict['sl'] == 'None':
                             if int(log.dict['egp']) >= try1_thresh:
                                 if int(log.dict['egp']
                                        ) >= try1_learning_thresh:

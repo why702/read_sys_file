@@ -73,8 +73,8 @@ def get_index(path, ignore = []):
     expr_enroll = re.compile(
         r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(\S+).png"
     )
-    expr_simple = re.compile(
-        r"(\S+)\\(enroll|verify|identify)\\(\S+).png"
+    expr_vivo_721 = re.compile(
+        r"\S*\\([0-9]+)_(lt|rt)_(low|nor)\\\S*\\(samples|template)\\\S+\\(\S+).png"
     )
 
     all_entries = list()
@@ -105,7 +105,8 @@ def get_index(path, ignore = []):
         m_p = expr_partial.match(filename.lower())
         m_sp = expr_simple_partial.match(filename.lower())
         m_e = expr_enroll.match(filename.lower())
-        m_s = expr_simple.match(filename.lower())
+        m_vivo_721 = expr_vivo_721.match(filename.lower())
+        fl = filename.lower()
 
         if (m):
             #print(m.group(1), m.group(2), m.group(3), m.group(4), m.group(5))
@@ -141,7 +142,7 @@ def get_index(path, ignore = []):
             if part == "15\\": index_offset += 180000
             if part == "10\\": index_offset += 190000
 
-            all_entries.append([person, finger, index_offset, filename])
+            all_entries.append((person, finger, index_offset, filename))
         elif (m_p):
             person = m_p.group(1)
             finger = int(m_p.group(2))
@@ -180,7 +181,7 @@ def get_index(path, ignore = []):
             if part == "15": index_offset += 180000
             if part == "10": index_offset += 190000
 
-            all_entries.append([person, finger, index_offset, filename])
+            all_entries.append((person, finger, index_offset, filename))
         elif (m_sp):
             person = m_sp.group(1)
             finger = int(m_sp.group(2))
@@ -210,7 +211,7 @@ def get_index(path, ignore = []):
             if part == "15": index_offset += 180000
             if part == "10": index_offset += 190000
 
-            all_entries.append([person, finger, index_offset, filename])
+            all_entries.append((person, finger, index_offset, filename))
         elif (m_e):
             person = m_e.group(1)
             finger = int(m_e.group(2))
@@ -218,15 +219,21 @@ def get_index(path, ignore = []):
             index_offset = 0
             if verify == "verify" or verify == "identify": index_offset += 10000
 
-            all_entries.append([person, finger, index_offset, filename])
-        elif m_s:
-            person = m_s.group(1)
-            verify = m_s.group(2)
+            all_entries.append((person, finger, index_offset, filename))
+        elif (m_vivo_721):
+            person = m_vivo_721.group(1)
+            finger_ = m_vivo_721.group(2)
+            tmp = m_vivo_721.group(3)
+            verify = m_vivo_721.group(4)
             index_offset = 0
-            if verify == "verify" or verify == "identify": index_offset += 10000
+            if  finger_ == 'rt':
+                finger = 0
+            elif finger_ == 'lt':
+                finger = 5
+            if tmp == 'low': index_offset += 100000
+            if verify == "samples" : index_offset += 10000
 
-            all_entries.append([person, 0, index_offset, filename])
-
+            all_entries.append((person, finger, index_offset, filename))
 
     # # inverse index
     # for i in range(len(all_entries)):
@@ -239,8 +246,6 @@ def get_index(path, ignore = []):
     # expr_repeat_enroll = re.compile(
     #     r"(\S+)\\(\S+).png"
     # )
-
-    # check enrollment numbers
     tmp_person = ""
     tmp_finger = -1
     # enroll_list = [] * 17
@@ -257,8 +262,8 @@ def get_index(path, ignore = []):
             enroll_count += 1
 
         if i + 1 < len(all_entries) and ((all_entries[i][3].find("enroll") >= 0 and all_entries[i + 1][3].find("enroll") < 0) or (tmp_person != all_entries[i +1][0] and tmp_finger != all_entries[i+1][1])):
-            if enroll_count != 17:
-                print("#ERROR!\tperson {}\tfinger {}\tenroll_count {} != 17\n".format(tmp_person, tmp_finger, enroll_count))
+            if enroll_count != 15:
+                print("\nERROR!\tperson {}\tfinger {}\tenroll_count {} != 17\n".format(tmp_person, tmp_finger, enroll_count))
                 tmp_person = ""
                 tmp_finger = -1
                 enroll_count = 0
@@ -284,69 +289,35 @@ def get_index(path, ignore = []):
     # print("Sorting all entries.")
     all_entries.sort()
 
-    # get try_count
-    sn_past = ""
-    try_count = 0
-    new_list = []
-    for i in range(len(all_entries)):
-        filename = all_entries[i][3]
-        sn = filename[filename.rfind('\\') + 1 : filename.rfind('_0x')]
-
-        log = read_BMP.parse_file_name(filename)
-        if int(log.dict['irl']) > 0 and (filename.find('_0_') >= 0 or filename.find('_2_') >= 0):
-            continue
-
-        if i is 0:
-            if sn.find("_TRY_") >= 0:
-                break
-            sn_past = sn
-            try_count = 0
-        elif sn_past != sn:
-            sn_past = sn
-            try_count = 0
-        else:
-            try_count += 1
-
-        l = all_entries[i]
-        l.append(try_count)
-        new_list.append(l)
-
-    # replace
-    all_entries = new_list
-
     # print("Mapping and writing to stdout.")
     tri_key = all_entries[1][0:3]
     sample_counter = 0
     output_list = []
     output_update_list = []
 
-    for person, finger, offset, filename, try_count in all_entries:
+    for person, finger, offset, filename in all_entries:
         new_tri_key = (person, finger, offset)
 
         # Check if a new finger or group. If so, reset sample counter.
         if tri_key != new_tri_key: sample_counter = 0
         tri_key = new_tri_key
 
-        # work around switch filename
-        if filename.find("_1_") >= 0 or filename.find("_3_") >= 0:
-            filename = "20210122_Solar_10DB_ph3\\np\\" + filename
-        else:
-            filename = "20210122_Solar_10DB_IPP\\np\\" + filename
-
         log = read_BMP.parse_file_name(filename)
-        if log.dict['egp'] == 'None' or int(log.dict['egp']) >= 80:
-            output_update = "{0}\t{1}\t{2}\t{3}\t{4} : verify_count={5}".format(
+        if log.dict['egp'] == 'None':
+            output_update = "{0}\t{1}\t{2}\t{3}\t{4}".format(
                 remap(person, persons), finger, 0, offset + sample_counter,
-                filename, try_count)
-        # elif int(log.dict['irl']) > 0 and (filename.find('_0_') >= 0 or filename.find('_2_') >= 0):
-        #     pass  # work around
+                filename)
+        elif int(log.dict['egp']) >= 80:
+            output_update = "{0}\t{1}\t{2}\t{3}\t{4}".format(
+                remap(person, persons), finger, 0, offset + sample_counter,
+                filename)
         else:
             # output_update = "{0}\t{1}\t{2}\t{3}\t{4} : skip_dyn_update".format(
             #     remap(person, persons), finger, 0, offset + sample_counter,
             #     filename)
-            output_update = "{0}\t{1}\t{2}\t{3}\t{4} : verify_count={5}".format(
+            output_update = "{0}\t{1}\t{2}\t{3}\t{4}".format(
                 remap(person, persons), finger, 0, offset + sample_counter,
-                filename, try_count)
+                filename)
 
         output = "{0}\t{1}\t{2}\t{3}\t{4}".format(remap(person,
                                                         persons), finger, 0,
@@ -365,7 +336,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     path = args.dir
-    ignore = ["Img16b"]
+    ignore = ["normal_edge", "on", "under", "08-24-10-59-40-372", "08-24-10-59-41-726"]
     _, output_update_list, ignore_count, err_count = get_index(path, ignore)
 
     print("# This file contains information about a fingerprint database.")
@@ -403,9 +374,9 @@ if __name__ == '__main__':
     print("#")
     for i in range(len(output_update_list)):
 
-        if output_update_list[i].find("_TRY_") >= 0:
-            try_num = int(output_update_list[i][output_update_list[i].find("_TRY_") +
-                                5:output_update_list[i].find("_TRY_") + 6])
+        if output_update_list[i].find("_retry-") >= 0:
+            try_num = int(output_update_list[i][output_update_list[i].find("_retry-") +
+                                7:output_update_list[i].find("_retry-") + 8])
             if try_num >= 0:
                 print(output_update_list[i] + " : verify_count={}".format(try_num))
         else:

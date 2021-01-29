@@ -135,7 +135,7 @@ def analysis_info(gen_data0, index_data0, output_file):
                 [info0['enroll'], info0['verify'], info0['match'], info0['score'], path, person, finger, verify, quality, cond, part, fr])
 
             # copy image
-            if path.find('worst_md3_') >= 0 and info0['match'] == '1':
+            if path.find('_md3') >= 0 and info0['match'] == '1':
                 img_path = os.path.join(root_folder, path)
                 out_path = os.path.join(root_folder, "md3", path)
                 if not os.path.exists(os.path.dirname(out_path)):

@@ -11,10 +11,12 @@ import read_BMP
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("dir0", help="directory to parse")
-    parser.add_argument("dir1", help="directory to parse")
-    parser.add_argument("filepath", help="directory to parse", default="")
-    parser.add_argument("mode", help="mode", default="00")
+    parser.add_argument("dir0", help="merged directory 0")
+    parser.add_argument("dir1", help="merged directory 1")
+    parser.add_argument("filepath",
+                        help="output merged fpdbindex path",
+                        default="")
+    parser.add_argument("-m", "--mode", type=int, help="learn mode", default=0)
     args = parser.parse_args()
 
     path0 = args.dir0
@@ -23,7 +25,7 @@ if __name__ == '__main__':
     path_root = os.path.dirname(filepath)
     filename = os.path.splitext(os.path.basename(filepath))[0]
 
-    ignore = []
+    ignore = ['TRY_0_TRY', 'TRY_1_TRY', 'TRY_2_TRY']
     # # sdk
     # sdk = 1
     # try0_thresh = 0
@@ -38,13 +40,13 @@ if __name__ == '__main__':
     try0_learning_thresh = 80
     try1_learning_thresh = 0  # change
 
-    if args.mode == "1":  # full
+    if args.mode == 1:  # full
         sdk = 0
         try0_thresh = 80
         try1_thresh = 0
         try0_learning_thresh = 80
         try1_learning_thresh = 0  # change
-    elif args.mode == "0":  # sdk
+    elif args.mode == 0:  # sdk
         sdk = 1
         try0_thresh = 0
         try1_thresh = 0
@@ -140,7 +142,7 @@ if __name__ == '__main__':
     fp.write("# Person ID (0 if unknown)\n")
     fp.write(
         "# 	Finger ID (= Finger Type if unspecified or 0 if unknown/unused)\n")
-    fp.write("# 		Finger Type (according to ISO/IES 19794-2:2005 tabe 2)\n")
+    fp.write("# 		Finger Type (according to ISO/IES 19794-2:2005 table 2)\n")
     fp.write(
         "# 			Sample ID (sometimes referred to as \"Attempt\" or \"Transaction\"\n"
     )
@@ -198,162 +200,56 @@ if __name__ == '__main__':
                     if try_num == 0:
                         verify_count = 0
 
-                        if log.dict['egp'] == 'None':
-                            fp.write(
-                                output0 +
-                                " : verify_count={}\n".format(verify_count))
-                            verify_count += 1
-                        elif log.dict['irl'] == 'None' or log.dict[
+                    if log.dict['egp'] == 'None':
+                        fp.write(output0 +
+                                 " : verify_count={}\n".format(verify_count))
+                        verify_count += 1
+                    elif log.dict['irl'] == 'None' or log.dict[
                             'rls'] == 'None' or log.dict['sl'] == 'None':
-                            if int(log.dict['egp']) >= try0_thresh:
-                                if int(log.dict['egp']
-                                       ) >= try0_learning_thresh:
-                                    fp.write(output0 +
-                                             " : verify_count={}\n".format(
-                                                 verify_count))
-                                    verify_count += 1
-                                else:
-                                    fp.write(
-                                        output0 +
-                                        " : verify_count={} : skip_dyn_update\n"
-                                        .format(verify_count))
-                                    verify_count += 1
-                        else:
-                            if int(log.dict['irl']) > 0 and (
-                                    int(log.dict['rls']) > 50
-                                    or int(log.dict['sl']) > 90):
-                                if sdk == 1:
-                                    fp.write(
-                                        output0 +
-                                        " : verify_count={} : skip_dyn_update\n"
-                                        .format(verify_count))
-                                    verify_count += 1
-                            elif int(log.dict['egp']) >= try0_thresh:
-                                if int(log.dict['egp']
-                                       ) >= try0_learning_thresh:
-                                    fp.write(output0 +
-                                             " : verify_count={}\n".format(
-                                                 verify_count))
-                                    verify_count += 1
-                                else:
-                                    fp.write(
-                                        output0 +
-                                        " : verify_count={} : skip_dyn_update\n"
-                                        .format(verify_count))
-                                    verify_count += 1
-
-                        # only try0
-                        if try_num_ == 0:
-                            if log.dict['egp'] == 'None':
-                                fp.write(
-                                    output1 +
-                                    " : verify_count={}\n".format(verify_count))
+                        if int(log.dict['egp']) >= try0_thresh:
+                            if int(log.dict['egp']) >= try0_learning_thresh:
+                                fp.write(output0 +
+                                         " : verify_count={}\n".format(
+                                             verify_count))
                                 verify_count += 1
-                            elif log.dict['irl'] == 'None' or log.dict[
-                                'rls'] == 'None' or log.dict['sl'] == 'None':
-                                if int(log.dict['egp']) >= try1_thresh:
-                                    if int(log.dict['egp']
-                                           ) >= try1_learning_thresh:
-                                        fp.write(output1 +
-                                                 " : verify_count={}\n".format(
-                                                     verify_count))
-                                        verify_count += 1
-                                    else:
-                                        fp.write(
-                                            output1 +
-                                            " : verify_count={} : skip_dyn_update\n"
-                                            .format(verify_count))
-                                        verify_count += 1
                             else:
-                                if int(log.dict['irl']) > 0 and (
-                                        int(log.dict['rls']) > 50
-                                        or int(log.dict['sl']) > 90):
-                                    if sdk == 1:
-                                        fp.write(
-                                            output1 +
-                                            " : verify_count={} : skip_dyn_update\n"
-                                            .format(verify_count + 1))
-                                        verify_count += 1
-                                    else:
-                                        if int(log.dict['egp']
-                                               ) >= try1_learning_thresh:
-                                            fp.write(output1 +
-                                                     " : verify_count={}\n".format(
-                                                         verify_count))
-                                            verify_count += 1
-                                        else:
-                                            fp.write(
-                                                output1 +
-                                                " : verify_count={} : skip_dyn_update\n"
-                                                .format(verify_count))
-                                            verify_count += 1
-                                elif int(log.dict['egp']) >= try1_thresh:
-                                    if int(log.dict['egp']
-                                           ) >= try1_learning_thresh:
-                                        fp.write(output1 +
-                                                 " : verify_count={}\n".format(
-                                                     verify_count))
-                                        verify_count += 1
-                                    else:
-                                        fp.write(
-                                            output1 +
-                                            " : verify_count={} : skip_dyn_update\n"
-                                            .format(verify_count))
-                                        verify_count += 1
-                    else:  # try 1,2 ...
-                        # ipp
-                        if log.dict['egp'] == 'None':
-                            fp.write(
-                                output0 +
-                                " : verify_count={}\n".format(verify_count))
-                            verify_count += 1
-                        elif log.dict['irl'] == 'None' or log.dict[
-                            'rls'] == 'None' or log.dict['sl'] == 'None':
-                            if int(log.dict['egp']) >= try0_thresh:
-                                if int(log.dict['egp']
-                                       ) >= try0_learning_thresh:
-                                    fp.write(output0 +
-                                             " : verify_count={}\n".format(
-                                                 verify_count))
-                                    verify_count += 1
-                                else:
-                                    fp.write(
-                                        output0 +
-                                        " : verify_count={} : skip_dyn_update\n"
-                                        .format(verify_count))
-                                    verify_count += 1
-                        else:
-                            if int(log.dict['irl']) > 0 and (
-                                    int(log.dict['rls']) > 50
-                                    or int(log.dict['sl']) > 90):
-                                if sdk == 1:
-                                    fp.write(
-                                        output0 +
-                                        " : verify_count={} : skip_dyn_update\n"
-                                        .format(verify_count))
-                                    verify_count += 1
-                            elif int(log.dict['egp']) >= try0_thresh:
-                                if int(log.dict['egp']
-                                       ) >= try0_learning_thresh:
-                                    fp.write(output0 +
-                                             " : verify_count={}\n".format(
-                                                 verify_count))
-                                    verify_count += 1
-                                else:
-                                    fp.write(
-                                        output0 +
-                                        " : verify_count={} : skip_dyn_update\n"
-                                        .format(verify_count))
-                                    verify_count += 1
+                                fp.write(
+                                    output0 +
+                                    " : verify_count={} : skip_dyn_update\n".
+                                    format(verify_count))
+                                verify_count += 1
+                    else:
+                        if int(log.dict['irl']) > 0 and (
+                                int(log.dict['rls']) > 50
+                                or int(log.dict['sl']) > 90):
+                            if sdk == 1:
+                                fp.write(
+                                    output0 +
+                                    " : verify_count={} : skip_dyn_update\n".
+                                    format(verify_count))
+                                verify_count += 1
+                        elif int(log.dict['egp']) >= try0_thresh:
+                            if int(log.dict['egp']) >= try0_learning_thresh:
+                                fp.write(output0 +
+                                         " : verify_count={}\n".format(
+                                             verify_count))
+                                verify_count += 1
+                            else:
+                                fp.write(
+                                    output0 +
+                                    " : verify_count={} : skip_dyn_update\n".
+                                    format(verify_count))
+                                verify_count += 1
 
-                        # ph3
+                    # only try0
+                    if try_num_ == 0:
                         if log.dict['egp'] == 'None':
                             fp.write(
                                 output1 +
                                 " : verify_count={}\n".format(verify_count))
                             verify_count += 1
                         elif log.dict['irl'] == 'None' or log.dict[
-                            'rls'] == 'None' or log.dict['sl'] == 'None':
+                                'rls'] == 'None' or log.dict['sl'] == 'None':
                             if int(log.dict['egp']) >= try1_thresh:
                                 if int(log.dict['egp']
                                        ) >= try1_learning_thresh:

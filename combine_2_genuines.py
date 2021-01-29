@@ -21,7 +21,7 @@ def parse_genuines(gen_file):
             info['enroll'] = match[0] + match[1] + match[2]
             info['verify'] = match[3] + match[4] + match[5]
             info['match'] = match[6]
-            info['score'] = match[13]
+            info['score'] = match[11]
             data.append(info)
     return data
 
@@ -33,6 +33,8 @@ def parse_index(index_file):
     data = []
     for line in all_lines:
         if line[0:1] == "#":
+            continue
+        if line[0:6] == "ERROR!":
             continue
         match = re.findall(r"\s*([0-9a-zA-Z\\\-\_\=\[\]\.]+)\s*", line)
         if len(match) >= 5:
@@ -109,7 +111,11 @@ def combine_info(gen_data0, gen_data1, index_data0, index_data1):
             info1 = None
 
             # find sn
-            sn = path0[path0.rfind('\\') + 1:path0.rfind('_00000000_')]
+            sn = ""
+            if path0.rfind('_0x') > 0:
+                sn = path0[path0.rfind('\\') + 1:path0.rfind('_0x')]
+            else:
+                sn = path0[path0.rfind('\\') + 1:path0.rfind('\\') + 26]
 
             if sn == '20200929_185505_637':
                 print()

@@ -293,8 +293,8 @@ def get_index(path, ignore = []):
         sn = filename[filename.rfind('\\') + 1 : filename.rfind('_0x')]
 
         log = read_BMP.parse_file_name(filename)
-        if int(log.dict['irl']) > 0 and (filename.find('_0_') >= 0 or filename.find('_2_') >= 0):
-            continue
+        # if int(log.dict['irl']) > 0 and (filename.find('_0_') >= 0 or filename.find('_2_') >= 0):
+        #     continue
 
         if i is 0:
             if sn.find("_TRY_") >= 0:
@@ -327,11 +327,11 @@ def get_index(path, ignore = []):
         if tri_key != new_tri_key: sample_counter = 0
         tri_key = new_tri_key
 
-        # work around switch filename
-        if filename.find("_1_") >= 0 or filename.find("_3_") >= 0:
-            filename = "20210122_Solar_10DB_ph3\\np\\" + filename
-        else:
-            filename = "20210122_Solar_10DB_IPP\\np\\" + filename
+        # # work around switch filename
+        # if filename.find("_1_") >= 0 or filename.find("_3_") >= 0:
+        #     filename = "20210122_Solar_10DB_ph3\\np\\" + filename
+        # else:
+        #     filename = "20210122_Solar_10DB_IPP\\np\\" + filename
 
         log = read_BMP.parse_file_name(filename)
         if log.dict['egp'] == 'None' or int(log.dict['egp']) >= 80:

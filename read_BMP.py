@@ -14,7 +14,7 @@ class LOG():
     def __init__(self):
         self.keywords = [
             # "et", "hc", "egp", "fk", "B", "Ba", "learn", "P", "ip", "rl", "irl", "rls", "sl", "mica", "702p", "dry", "sP", "isP"
-            "et", "hc", "egp", "P", "ip", "rl", "irl", "rls", "sl", "mica", "dry", "sP", "isp", "q1", "q2", "q3",
+            "et", "hc", "egp", "p", "ip", "rl", "irl", "rls", "sl", "mica", "dry", "sP", "isp", "q1", "q2", "q3",
             "lcpr", "irg", "idt", "pLearn"
         ]
         self.dict = {}

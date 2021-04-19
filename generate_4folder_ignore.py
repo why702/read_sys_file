@@ -385,10 +385,12 @@ def get_index(path, ignore=[]):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("dir", help="directory to parse", default=".")
+    parser.add_argument("-ig", "--ignore", help="ignore key word", default="")
     args = parser.parse_args()
 
     path = args.dir
-    ignore = ["Img16b"]
+    ign = args.ignore
+    ignore = ign.split(',')
     _, output_update_list, ignore_count, err_count = get_index(path, ignore)
 
     print("# This file contains information about a fingerprint database.")

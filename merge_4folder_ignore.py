@@ -17,6 +17,7 @@ if __name__ == '__main__':
                         help="output merged fpdbindex path",
                         default="")
     parser.add_argument("-m", "--mode", type=int, help="learn mode", default=0)
+    parser.add_argument("-ig", "--ignore", help="ignore key word", default="")
     args = parser.parse_args()
 
     path0 = args.dir0
@@ -25,7 +26,8 @@ if __name__ == '__main__':
     path_root = os.path.dirname(filepath)
     filename = os.path.splitext(os.path.basename(filepath))[0]
 
-    ignore = ['TRY_0_TRY', 'TRY_1_TRY', 'TRY_2_TRY']
+    ign = args.ignore
+    ignore = ign.split(',')
     # # sdk
     # sdk = 1
     # try0_thresh = 0

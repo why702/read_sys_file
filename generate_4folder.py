@@ -309,7 +309,7 @@ def get_index(path, ignore=[]):
         #     continue
 
         if sn is not None:
-            if i is 0:
+            if i == 0:
                 if sn.find("_TRY_") >= 0:
                     break
                 sn_past = sn

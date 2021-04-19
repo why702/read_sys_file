@@ -195,7 +195,7 @@ def list_files(dir_path, csv_file):
                     writer.writerow(fieldnames)
 
                 d = log.dict['pLearn']
-                if log.dict['pLearn'] is 'None':
+                if log.dict['pLearn'] == 'None':
                     egp = int(log.dict['egp'])
                     rl = int(log.dict['rl'])
                     irl = int(log.dict['irl'])

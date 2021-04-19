@@ -14,7 +14,8 @@ class LOG():
     def __init__(self):
         self.keywords = [
             # "et", "hc", "egp", "fk", "B", "Ba", "learn", "P", "ip", "rl", "irl", "rls", "sl", "mica", "702p", "dry", "sP", "isP"
-            "et", "hc", "egp", "P", "ip", "rl", "irl", "rls", "sl", "mica", "dry", "sP", "isp", "q1", "q2", "q3", "lcpr", "irg", "idt"
+            "et", "hc", "egp", "p", "ip", "rl", "irl", "rls", "sl", "mica", "dry", "sP", "isp", "q1", "q2", "q3",
+            "lcpr", "irg", "idt", "pLearn"
         ]
         self.dict = {}
 
@@ -58,6 +59,7 @@ def regax_keyword(keyword, text):
         return match[0].replace("_{}=".format(keyword), '')
     else:
         return 'None'
+
 
 def regax_serial_number(text):
     match = re.search(r"([a-z|A-Z|0-9/-_]*)_0x", text)
@@ -109,7 +111,7 @@ def parse_files(root, name):
     #     print('log.add_dict("serial_number", value) == False')
     #     return
 
-    #serial_number
+    # serial_number
     log.add_dict("serial_number", name)
 
     values = regax_pass(name)
@@ -148,7 +150,7 @@ def parse_files(root, name):
 def parse_file_name(name):
     log = LOG()
 
-    #serial_number
+    # serial_number
     log.add_dict("serial_number", name)
 
     values = regax_pass(name)
@@ -191,6 +193,21 @@ def list_files(dir_path, csv_file):
                     fieldnames = log.dict.keys()
                     writer = csv.writer(csvfile)
                     writer.writerow(fieldnames)
+
+                d = log.dict['pLearn']
+                if log.dict['pLearn'] is 'None':
+                    egp = int(log.dict['egp'])
+                    rl = int(log.dict['rl'])
+                    irl = int(log.dict['irl'])
+                    sl = int(log.dict['sl'])
+                    rls = int(log.dict['rls'])
+                    if egp < 80 or (rl > 2 and rls > 50) or (irl > 0 and rls > 70) or (rl > 2 and sl > 90) or (
+                            irl > 0 and sl > 90) or (rl <= 2 and sl == 200):
+                        pLearn = 0
+                    else:
+                        pLearn = 1
+                    log.dict['pLearn'] = pLearn
+                    pass
 
                 writer.writerow(log.dict.values())
 

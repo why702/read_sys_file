@@ -215,7 +215,7 @@ if __name__ == '__main__':
                             else:
                                 fp.write(
                                     output0 +
-                                    " : verify_count={} : skip_dyn_update\n".
+                                    " : verify_count={} skip_dyn_update\n".
                                     format(verify_count))
                                 verify_count += 1
                     else:
@@ -225,7 +225,7 @@ if __name__ == '__main__':
                             if sdk == 1:
                                 fp.write(
                                     output0 +
-                                    " : verify_count={} : skip_dyn_update\n".
+                                    " : verify_count={} skip_dyn_update\n".
                                     format(verify_count))
                                 verify_count += 1
                         elif int(log.dict['egp']) >= try0_thresh:
@@ -237,7 +237,7 @@ if __name__ == '__main__':
                             else:
                                 fp.write(
                                     output0 +
-                                    " : verify_count={} : skip_dyn_update\n".
+                                    " : verify_count={} skip_dyn_update\n".
                                     format(verify_count))
                                 verify_count += 1
 
@@ -260,7 +260,7 @@ if __name__ == '__main__':
                                 else:
                                     fp.write(
                                         output1 +
-                                        " : verify_count={} : skip_dyn_update\n"
+                                        " : verify_count={} skip_dyn_update\n"
                                         .format(verify_count))
                                     verify_count += 1
                         else:
@@ -270,7 +270,7 @@ if __name__ == '__main__':
                                 if sdk == 1:
                                     fp.write(
                                         output1 +
-                                        " : verify_count={} : skip_dyn_update\n"
+                                        " : verify_count={} skip_dyn_update\n"
                                         .format(verify_count + 1))
                                     verify_count += 1
                                 else:
@@ -283,7 +283,7 @@ if __name__ == '__main__':
                                     else:
                                         fp.write(
                                             output1 +
-                                            " : verify_count={} : skip_dyn_update\n"
+                                            " : verify_count={} skip_dyn_update\n"
                                             .format(verify_count))
                                         verify_count += 1
                             elif int(log.dict['egp']) >= try1_thresh:
@@ -296,7 +296,7 @@ if __name__ == '__main__':
                                 else:
                                     fp.write(
                                         output1 +
-                                        " : verify_count={} : skip_dyn_update\n"
+                                        " : verify_count={} skip_dyn_update\n"
                                         .format(verify_count))
                                     verify_count += 1
 

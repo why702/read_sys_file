@@ -296,7 +296,7 @@ def get_index(path, ignore = []):
         # if int(log.dict['irl']) > 0 and (filename.find('_0_') >= 0 or filename.find('_2_') >= 0):
         #     continue
 
-        if i is 0:
+        if i == 0:
             if sn.find("_TRY_") >= 0:
                 break
             sn_past = sn

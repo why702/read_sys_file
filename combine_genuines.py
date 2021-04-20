@@ -21,7 +21,7 @@ def parse_genuines(gen_file):
             info['enroll'] = match[0] + match[1] + match[2]
             info['verify'] = match[3] + match[4] + match[5]
             info['match'] = match[6]
-            info['score'] = match[13]
+            info['score'] = match[11]
             data.append(info)
     return data
 

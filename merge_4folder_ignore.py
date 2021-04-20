@@ -1,13 +1,8 @@
-import os
-import numpy as np
-import matplotlib.pylab as plt
-from itertools import zip_longest
-import cv2
-import re
-import csv
 import argparse
+import os
+
 import generate_4folder
-import read_BMP
+from utils import parse_file_name
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -28,12 +23,10 @@ if __name__ == '__main__':
 
     ign = args.ignore
     ignore = ign.split(',')
-    # # sdk
-    # sdk = 1
-    # try0_thresh = 0
-    # try1_thresh = 0
-    # try0_learning_thresh = 80
-    # try1_learning_thresh = try0_learning_thresh  # 80
+    for i in range(len(ignore)):
+        if ignore[i] == "":
+            ignore = []
+            break
 
     # simulate
     sdk = 0
@@ -42,63 +35,24 @@ if __name__ == '__main__':
     try0_learning_thresh = 80
     try1_learning_thresh = 0  # change
 
-    if args.mode == 1:  # full
-        sdk = 0
-        try0_thresh = 80
-        try1_thresh = 0
-        try0_learning_thresh = 80
-        try1_learning_thresh = 0  # change
-    elif args.mode == 0:  # sdk
+    if args.mode == 0:  # sdk
         sdk = 1
         try0_thresh = 0
         try1_thresh = 0
         try0_learning_thresh = 80
         try1_learning_thresh = try0_learning_thresh  # 80
-    # elif args.mode == "01":  # sdk on
-    #     sdk = 1
-    #     try0_thresh = 0
-    #     try1_thresh = 0
-    #     try0_learning_thresh = 80
-    #     try1_learning_thresh = try0_learning_thresh  # 80
-    #     ignore = ["normal_edge", "walk", "under", "08-24-10-59-40-372", "08-24-10-59-41-726"]
-    # elif args.mode == "02":  # sdk under
-    #     sdk = 1
-    #     try0_thresh = 0
-    #     try1_thresh = 0
-    #     try0_learning_thresh = 80
-    #     try1_learning_thresh = try0_learning_thresh  # 80
-    #     ignore = ["normal_edge", "walk", "on", "08-24-10-59-40-372", "08-24-10-59-41-726"]
-    # elif args.mode == "03":  # sdk walk
-    #     sdk = 1
-    #     try0_thresh = 0
-    #     try1_thresh = 0
-    #     try0_learning_thresh = 80
-    #     try1_learning_thresh = try0_learning_thresh  # 80
-    #     ignore = ["normal_edge", "under", "on", "08-24-10-59-40-372", "08-24-10-59-41-726"]
-    # elif args.mode == "11":  # full on
-    #     sdk = 0
-    #     try0_thresh = 80
-    #     try1_thresh = 0
-    #     try0_learning_thresh = 80
-    #     try1_learning_thresh = 0  # change
-    #     ignore = ["normal_edge", "walk", "under", "08-24-10-59-40-372", "08-24-10-59-41-726"]
-    # elif args.mode == "12":  # full under
-    #     sdk = 0
-    #     try0_thresh = 80
-    #     try1_thresh = 0
-    #     try0_learning_thresh = 80
-    #     try1_learning_thresh = 0  # change
-    #     ignore = ["normal_edge", "walk", "on", "08-24-10-59-40-372", "08-24-10-59-41-726"]
-    # elif args.mode == "13":  # full walk
-    #     sdk = 0
-    #     try0_thresh = 80
-    #     try1_thresh = 0
-    #     try0_learning_thresh = 80
-    #     try1_learning_thresh = 0  # change
-    #     ignore = ["normal_edge", "under", "on", "08-24-10-59-40-372", "08-24-10-59-41-726"]
+    elif args.mode == 1:  # full
+        sdk = 0
+        try0_thresh = 80
+        try1_thresh = 0
+        try0_learning_thresh = 80
+        try1_learning_thresh = 0  # change
 
-    list0, _, _, _ = generate_4folder.get_index(path0, ignore=ignore)
-    list1, _, _, _ = generate_4folder.get_index(path1, ignore=ignore)
+    list0, _, _, _, user_et0 = generate_4folder.get_index(path0, ignore=ignore)
+    list1, _, _, _, user_et1 = generate_4folder.get_index(path1, ignore=ignore)
+
+    print("#user_et0 = {}".format(user_et0))
+    print("#user_et1 = {}".format(user_et1))
 
     if path_root == "":
         folder1 = os.path.abspath(path1).split('\\')
@@ -155,7 +109,7 @@ if __name__ == '__main__':
     verify_count = 0
     if len(list0) == len(list1):
         for i in range(len(list0)):
-            log = read_BMP.parse_file_name(list0[i])
+            log = parse_file_name(list0[i])
 
             info0, info1, info2, info3, info4 = list0[i].split('\t')
             info5, info6, info7, info8, info9 = list1[i].split('\t')
@@ -200,7 +154,7 @@ if __name__ == '__main__':
                     fp.write(output1 +
                              " : verify_count={}\n".format(verify_count + 1))
                 elif log.dict['irl'] == 'None' or log.dict[
-                        'rls'] == 'None' or log.dict['sl'] == 'None':
+                    'rls'] == 'None' or log.dict['sl'] == 'None':
                     if int(log.dict['egp']) >= try0_thresh:
                         if int(log.dict['egp']) >= try0_learning_thresh:
                             fp.write(

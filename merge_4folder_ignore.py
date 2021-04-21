@@ -1,8 +1,7 @@
 import argparse
 import os
 
-import generate_4folder
-from utils import parse_file_name
+from utils import parse_file_name, get_index
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -48,10 +47,16 @@ if __name__ == '__main__':
         try0_learning_thresh = 80
         try1_learning_thresh = 0  # change
 
-    list0, _, _, _, user_et0 = generate_4folder.get_index(path0, ignore=ignore)
-    list1, _, _, _, user_et1 = generate_4folder.get_index(path1, ignore=ignore)
+    list0, _, ignore_count0, err_count0, user_et0 = get_index(path0, ignore=ignore)
+    list1, _, ignore_count1, err_count1, user_et1 = get_index(path1, ignore=ignore)
 
+    print("#len0 = {}".format(len(list0)))
+    print("#ignore_count0 = {}".format(ignore_count0))
+    print("#err_count0 = {}".format(err_count0))
     print("#user_et0 = {}".format(user_et0))
+    print("#len1 = {}".format(len(list1)))
+    print("#ignore_count1 = {}".format(ignore_count1))
+    print("#err_count1 = {}".format(err_count1))
     print("#user_et1 = {}".format(user_et1))
 
     if path_root == "":

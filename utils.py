@@ -9,8 +9,6 @@ import cv2
 import numpy as np
 from skimage.feature import local_binary_pattern
 
-import read_BMP
-
 
 def read_bin(bin_path, tuple_size=(200, 200), low_endian=True):
     f = open(bin_path, "r")
@@ -620,7 +618,7 @@ def get_index(path, ignore=[]):
         else:
             sn = None
 
-        # log = read_BMP.parse_file_name(filename)
+        # log = parse_file_name(filename)
         # if int(log.dict['irl']) > 0 and (filename.find('_0_') >= 0 or filename.find('_2_') >= 0):
         #     continue
 
@@ -662,7 +660,7 @@ def get_index(path, ignore=[]):
         # else:
         #     filename = "20210122_Solar_10DB_IPP\\np\\" + filename
 
-        log = read_BMP.parse_file_name(filename)
+        log = parse_file_name(filename)
 
         if sn is not None:
             if log.dict['egp'] == 'None' or int(log.dict['egp']) >= 80:

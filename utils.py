@@ -372,6 +372,9 @@ def get_index(path, ignore=[]):
             # files.append([os.path.join(r, file), int(file[0:2] + file[3:5] + file[6:8] + file[9:11] + file[12:14] + file[15:18])])
             # print(os.path.join(rp, file))
 
+    if len(files) < 10:
+        print("len(files) < 10")
+        return
     # # change order
     # files.sort(key = lambda s: s[1])
 
@@ -396,7 +399,7 @@ def get_index(path, ignore=[]):
         need_ignore = False
         if len(ignore) > 0:
             for i in range(len(ignore)):
-                f_low = f.lower();
+                f_low = f.lower()
                 if f_low.find(ignore[i]) >= 0:
                     need_ignore = True
                     break
@@ -704,8 +707,12 @@ class LOG():
     def __init__(self):
         self.keywords = [
             # "et", "hc", "egp", "fk", "B", "Ba", "learn", "P", "ip", "rl", "irl", "rls", "sl", "mica", "702p", "dry", "sP", "isP"
-            "et", "hc", "egp", "p", "ip", "rl", "irl", "rls", "sl", "mica", "dry", "sP", "isp", "q1", "q2", "q3",
-            "lcpr", "irg", "idt", "pLearn"
+            "et", "hc", "egp", "p",
+            # "ip",
+            "rl", "irl", "rls", "sl", "mica",
+            # "dry", "sP", "isp", "q1", "q2", "q3",
+            # "lcpr", "irg", "idt",
+            "pLearn", "mr"
         ]
         self.dict = {}
 

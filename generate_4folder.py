@@ -9,6 +9,7 @@ if __name__ == '__main__':
 
     path = args.dir
     ignore = []
+    # ignore = ['image_raw']
     _, output_update_list, ignore_count, err_count, user_et = get_index(path, ignore)
 
     print("# This file contains information about a fingerprint database.")

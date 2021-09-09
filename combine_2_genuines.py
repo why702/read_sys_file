@@ -40,7 +40,14 @@ def parse_index(index_file):
         if len(match) >= 5:
             info = dict()
             info['id'] = match[0] + match[1] + match[3]
-            info['path'] = match[4]
+
+            # find png
+            path = ""
+            for i in range(4,len(match)):
+                if match[i].find(".png") > 0:
+                    path = match[i]
+                    break
+            info['path'] = path
             data.append(info)
     return data
 
@@ -93,17 +100,17 @@ def combine_info(gen_data0, gen_data1, index_data0, index_data1):
         for info0 in gen_data0:
             verify_id0 = info0['verify']
 
-            # # find path
-            # path = find_path(index_data0, verify_id)
-            #
-            # # # find other info
-            # # info1 = find_gen_info(gen_data1, verify_id)
-            # # if info1 is None:
-            # #     continue
+            # find path
+            path = find_path(index_data0, verify_id0)
 
-            # info1 = find_gen_info_sn(gen_data0, index_data0, verify_id, gen_data1, index_data1)
+            # # find other info
+            # info1 = find_gen_info(gen_data1, verify_id)
             # if info1 is None:
             #     continue
+
+            info1 = find_gen_info_sn(gen_data0, index_data0, verify_id0, gen_data1, index_data1)
+            if info1 is None:
+                continue
 
             # find path
             path0 = find_path(index_data0, verify_id0)

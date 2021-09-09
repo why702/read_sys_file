@@ -16,10 +16,4 @@
 /.idea/*.*
 /__pycache__/*.*
 
-# partial
-/Partial_GUI_Tool/PartialTool/x64/*.*
-/Partial_GUI_Tool/PartialTool/IPPLib/x64/*.*
-#Partial_GUI_Tool/PartialTool.opensdf
-#Partial_GUI_Tool/PartialTool.sdf
-#Partial_GUI_Tool/*.exe
-#Partial_GUI_Tool/*.pdb
+perf/

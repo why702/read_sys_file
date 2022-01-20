@@ -19,4 +19,5 @@ if __name__ == '__main__':
     img1 = os.path.basename(args.img_path1)
     copyfile(args.img_path0, os.path.join(test_folder, img0))
     copyfile(args.img_path1, os.path.join(test_folder, img1))
-    run_perf_single_pair(test_folder, "read_sys_file/perf/" + img0, "read_sys_file/perf/" + img1, args.dpi)
+    # run_perf_single_pair(test_folder, "read_sys_file/perf/" + img0, "read_sys_file/perf/" + img1, args.dpi)
+    run_perf_single_pair(test_folder, img0, img1, args.dpi)

@@ -15,12 +15,14 @@ from skimage.feature import local_binary_pattern
 
 def read_bin(bin_path, tuple_size=(200, 200), low_endian=True):
     f = open(bin_path, "r")
-    byte = np.fromfile(f, dtype=np.uint16)
-
-    if low_endian == False:
-        for i in range(len(byte)):
-            b = struct.pack('>H', byte[i])
-            byte[i] = struct.unpack('H', b)[0]
+    if low_endian:
+        byte = np.fromfile(f, dtype=np.uint16)
+    else:
+        byte = np.fromfile(f, dtype='>u2')
+    # if low_endian == False:
+    #     for i in range(len(byte)):
+    #         b = struct.pack('>H', byte[i])
+    #         byte[i] = struct.unpack('H', b)[0]
     return byte.reshape(tuple_size)
 
 
@@ -149,6 +151,7 @@ def read_bins(bin_dir, width, height, RBS=False):
     bk_list = []
     ipp_list = []
     bds_list = []
+    file_list = []
     img = None
     bk = None
     ipp = None
@@ -156,19 +159,20 @@ def read_bins(bin_dir, width, height, RBS=False):
     BK_et = 0
     need_bk = True
     low_endian = not RBS
+    img_size = (height, width)
 
     for root, dirs, files in os.walk(bin_dir, topdown=False):
         for name in files:
             if os.path.splitext(name)[1] == '.bin':
                 if RBS:
                     if root.find("image_raw") != -1:
-                        img = read_bin(os.path.join(root, name), low_endian)
+                        img = read_bin(os.path.join(root, name), img_size, low_endian)
 
-                        ipp_name = name.replace("image_raw", "image_bin")
-                        ipp = read_8bit_bin(os.path.join(root, ipp_name))
+                        ipp_path = os.path.join(root, name).replace("image_raw", "image_bin")
+                        ipp = read_8bit_bin(ipp_path, img_size)
 
-                        bds_name = name.replace("image_raw", "image_bkg")
-                        bds = read_bin(os.path.join(root, bds_name), low_endian)
+                        bds_path = os.path.join(root, name).replace("image_raw", "image_bkg")
+                        bds = read_bin(bds_path, img_size, low_endian)
 
                         # if img is None or bk is None or ipp is None or bds is None:
                         #     continue
@@ -179,49 +183,53 @@ def read_bins(bin_dir, width, height, RBS=False):
                         bk_list.append(bk)
                         ipp_list.append(ipp)
                         bds_list.append(bds)
+                        file_list.append(os.path.join(root, name))
                     pass
                 else:
 
                     if name.find("_Img16b_") != -1:
 
-                        # find et
-                        et = name[name.find("_et=") + 4: name.find("_hc=")]
+                        # # find et
+                        # et = name[name.find("_et=") + 4: name.find("_hc=")]
+                        #
+                        # # # find bk
+                        # # mi = name[name.find("mica=") + 5: name.find("mica=") + 7]
+                        # #
+                        # # if root.find("enroll") != -1 and mi == "00" and need_bk:
+                        # #     bk_name = name.replace("Img16b", "Img16bBkg")
+                        # #     bk = read_bin(os.path.join(root, bk_name), img_size)
+                        # #     need_bk = False
+                        # #     BK_et = et
+                        # # elif need_bk == False and root.find("enroll") == -1:
+                        # #     need_bk = True
+                        # #
+                        # # if BK_et != et or et == 0:
+                        # #     continue
 
-                        # find bk
-                        mi = name[name.find("mica=") + 5: name.find("mica=") + 7]
-
-                        if root.find("enroll") != -1 and mi == "00" and need_bk:
-                            bk_name = name.replace("Img16b", "Img16bBkg")
-                            bk = read_bin(os.path.join(root, bk_name))
-                            need_bk = False
-                            BK_et = et
-                        elif need_bk == False and root.find("enroll") == -1:
-                            need_bk = True
-
-                        if BK_et != et or et == 0:
-                            continue
-
-                        img = read_bin(os.path.join(root, name), low_endian)
+                        img = read_bin(os.path.join(root, name), img_size, low_endian)
 
                         ipp_name = name.replace("Img16b", "Img8b")
-                        ipp = read_8bit_bin(os.path.join(root, ipp_name))
+                        ipp = read_8bit_bin(os.path.join(root, ipp_name), img_size)
 
                         bds_name = name.replace("Img16b", "Img16bBkg")
-                        bds = read_bin(os.path.join(root, bds_name), low_endian)
+                        bds = read_bin(os.path.join(root, bds_name), img_size, low_endian)
 
-                        if img is None or bk is None or ipp is None or bds is None:
+                        # if img is None or bk is None or ipp is None or bds is None:
+                        #     continue
+                        if img is None or ipp is None or bds is None:
                             continue
 
                         img_list.append(img)
                         bk_list.append(bk)
                         ipp_list.append(ipp)
                         bds_list.append(bds)
+                        file_list.append(os.path.join(root, name))
 
     print("img_list size is {}".format(len(img_list)))
-    return img_list, bk_list, ipp_list, bds_list
+    return img_list, bk_list, ipp_list, bds_list, file_list
 
 
-def read_bins_toCSV(bin_dir, out_path, width, height, RBS=False, GOOD=False):
+def read_bins_toCSV(bin_dir, out_path, RBS=False, GOOD=False):
     BK_et = 0
     need_bk = True
     count = 0
@@ -457,10 +465,11 @@ def execute_perf(fpdbindex_path, org=False):
     if os.path.exists(output_perf) and org is False:
         shutil.rmtree(output_perf, ignore_errors=True)
 
-    PERF_VERSION = 3333
+    PERF_VERSION = 4012
     API = "mobile"
-    ALGO = "egistec_215x175_evo_EL721_3PI_S3PI1"
-    FAR = "50K"
+    ALGO = "egistec_215x175_evo_EL721_3PI_generic"
+    # ALGO = "egistec_200x200_cardo_S3PG5"
+    FAR = "1K"
     LATCENY = 0
     ENROLL_UPPER_BOUNDARY = 17
     ENROLL_LOWER_BOUNDARY = 1
@@ -739,6 +748,12 @@ def get_index(path, ignore=[]):
     # r=root, d=directories, f = files
     for r, d, f in os.walk(path):
         for file in f:
+            if file[-3:] != 'png':
+                continue
+            if file.find("_Img8bmsk_") >= 0:
+                continue
+            if file.find("_0x8") >= 0:
+                continue
             rp = "." + r.replace(path, '')
             files.append(os.path.join(rp, file))
             # files.append([os.path.join(r, file), int(file[0:2] + file[3:5] + file[6:8] + file[9:11] + file[12:14] + file[15:18])])
@@ -751,15 +766,19 @@ def get_index(path, ignore=[]):
     # files.sort(key = lambda s: s[1])
 
     expr = re.compile(
-        r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(st|45d|90d|135d)\\([0-9]+\\)*(\S+).png"
+        r"(\S+)\\(\d+)\\(enroll|verify|identify|update)\\(st|45d|90d|135d)\\([0-9]+\\)*(\S+).png"
     )
     expr_partial = re.compile(
-        r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(\S+)\\([0-9]+)\\(\S+).png")
+        r"(\S+)\\(\d+)\\(enroll|verify|identify|update)\\(\S+)\\([0-9]+)\\(\S+).png")
     expr_simple_partial = re.compile(
-        r"(\S+)\\(\d+)\\(enroll|verify|identify)\\([0-9]+)\\(\S+).png")
+        r"(\S+)\\(\d+)\\(enroll|verify|identify|update)\\([0-9]+)\\(\S+).png")
     expr_enroll = re.compile(
-        r"(\S+)\\(\d+)\\(enroll|verify|identify)\\(\S+).png")
-    expr_simple = re.compile(r"(\S+)\\(enroll|verify|identify)\\(\S+).png")
+        r"(\S+)\\(\d+)\\(enroll|verify|identify|update)\\(\S+).png")
+    expr_simple = re.compile(r"(\S+)\\(enroll|verify|identify|update)\\(\S+).png")
+
+    # no enroll/verify folder
+    is_enroll = True
+    expr_no_enroll = re.compile(r"(\S+)\\(\S+).png")
 
     all_entries = list()
     persons = dict()
@@ -772,6 +791,8 @@ def get_index(path, ignore=[]):
         if len(ignore) > 0:
             for i in range(len(ignore)):
                 f_low = f.lower()
+                k = ignore[i]
+                b = f_low.find(k)
                 if f_low.find(ignore[i]) >= 0:
                     need_ignore = True
                     break
@@ -779,12 +800,12 @@ def get_index(path, ignore=[]):
         if need_ignore:
             ignore_count += 1
             continue
-        elif filename.find('mask') > 0 or filename.find(
-                'msk') > 0 or filename.find('_T.png') > 0 or filename.find(
-            '_RD_') > 0 or filename.find('_TRY_0_TRY_') > 0:
-            err_count += 1
-            continue
-        elif filename.find('_0x800') > 0 or filename.find('_0x880') > 0:
+        # elif filename.find('mask') > 0 or filename.find(
+        #         'msk') > 0 or filename.find('_T.png') > 0 or filename.find(
+        #     '_RD_') > 0 or filename.find('_TRY_0_TRY_') > 0:
+        #     err_count += 1
+        #     continue
+        elif filename.find('0x80') > 0 and filename.find('_0x08') < 0:
             err_count += 1
             continue
 
@@ -793,6 +814,7 @@ def get_index(path, ignore=[]):
         m_sp = expr_simple_partial.match(filename.lower())
         m_e = expr_enroll.match(filename.lower())
         m_s = expr_simple.match(filename.lower())
+        m_ne = expr_no_enroll.match(filename.lower())
 
         if (m):
             # print(m.group(1), m.group(2), m.group(3), m.group(4), m.group(5))
@@ -803,7 +825,7 @@ def get_index(path, ignore=[]):
             part = m.group(5)
 
             index_offset = 0
-            if verify == "verify" or verify == "identify":
+            if verify == "verify" or verify == "identify" or verify == "update":
                 index_offset += 10000
             if quality == "45d": index_offset += 200000
             if quality == "90d": index_offset += 400000
@@ -838,8 +860,8 @@ def get_index(path, ignore=[]):
             part = m_p.group(5)
 
             index_offset = 0
-            if verify == "verify": index_offset += 10000
-
+            if verify == "verify" or verify == "identify" or verify == "update":
+                index_offset += 10000
             if cond == "dry" or cond == "wash": index_offset += 200000
             if cond == "normal_on" or cond == "on" or cond == "normal":
                 index_offset += 400000
@@ -880,7 +902,7 @@ def get_index(path, ignore=[]):
             part = m_sp.group(4)
 
             index_offset = 0
-            if verify == "verify": index_offset += 10000
+            if verify == "verify" or verify == "identify" or verify == "update": index_offset += 10000
 
             if part == "100": index_offset += 10000
             if part == "95": index_offset += 20000
@@ -908,7 +930,7 @@ def get_index(path, ignore=[]):
             finger = int(m_e.group(2))
             verify = m_e.group(3)
             index_offset = 0
-            if verify == "verify" or verify == "identify":
+            if verify == "verify" or verify == "identify" or verify == "update":
                 index_offset += 10000
 
             all_entries.append([person, finger, index_offset, filename])
@@ -916,7 +938,14 @@ def get_index(path, ignore=[]):
             person = m_s.group(1)
             verify = m_s.group(2)
             index_offset = 0
-            if verify == "verify" or verify == "identify":
+            if verify == "verify" or verify == "identify" or verify == "update":
+                index_offset += 10000
+
+            all_entries.append([person, 0, index_offset, filename])
+        elif m_ne:
+            person = m_ne.group(1)
+            index_offset = 0
+            if is_enroll is False:
                 index_offset += 10000
 
             all_entries.append([person, 0, index_offset, filename])
@@ -932,6 +961,10 @@ def get_index(path, ignore=[]):
     # expr_repeat_enroll = re.compile(
     #     r"(\S+)\\(\S+).png"
     # )
+
+    if len(all_entries) <= 0:
+        print("len(all_entries) <= 0")
+        return
 
     # check enrollment numbers
     tmp_person = ""
@@ -1008,6 +1041,20 @@ def get_index(path, ignore=[]):
                 try_count = 0
             else:
                 try_count += 1
+        else:
+            sn = filename[filename.rfind('\\') + 1:]
+            if sn.find("_TRY_0_") >= 0:
+                try_count = 0
+            elif sn.find("_TRY_1_") >= 0:
+                try_count = 1
+            elif sn.find("_TRY_2_") >= 0:
+                try_count = 2
+            elif sn.find("_TRY_3_") >= 0:
+                try_count = 3
+            elif sn.find("_TRY_4_") >= 0:
+                try_count = 4
+            elif sn.find("_TRY_5_") >= 0:
+                try_count = 5
 
         l = all_entries[i]
         l.append(try_count)
@@ -1037,7 +1084,7 @@ def get_index(path, ignore=[]):
 
         log = parse_file_name(filename)
 
-        if sn is not None:
+        if sn is not None and offset > 0:
             if log.dict['egp'] == 'None' or int(log.dict['egp']) >= 80:
                 output_update = "{0}\t{1}\t{2}\t{3}\t{4} : verify_count={5}".format(
                     remap(person, persons), finger, 0, offset + sample_counter,

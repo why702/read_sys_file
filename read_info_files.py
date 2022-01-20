@@ -31,7 +31,10 @@ def list_files(dir_path, csv_file):
                             output += "\t" + line[pos1:pos3]
                         if pos2 != -1 and pos3 != -1:
                             output += "\t" + line[pos2:pos3]
+                output = output.replace("FRR: ", "")
+                output = output.replace("FAR: ", "")
                 output = output.replace(" ", "\t")
+                output = output.replace("/", "\t")
                 output = output.replace("(", "")
                 output = output.replace(")", "")
                 output = output.replace(dir_path, "")

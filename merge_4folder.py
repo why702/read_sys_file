@@ -45,8 +45,8 @@ if __name__ == '__main__':
     list0, _, _, _, user_et0 = generate_4folder.get_index(path0, ignore=ignore)
     list1, _, _, _, user_et1 = generate_4folder.get_index(path1, ignore=ignore)
 
-    print("#user_et0 = {}".format(user_et0))
-    print("#user_et1 = {}".format(user_et1))
+    # print("#user_et0 = {}".format(user_et0))
+    # print("#user_et1 = {}".format(user_et1))
 
     if path_root == "":
         folder1 = os.path.abspath(path1).split('\\')

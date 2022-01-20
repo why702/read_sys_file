@@ -7,6 +7,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("dir0", help="merged directory 0")
     parser.add_argument("dir1", help="merged directory 1")
+    parser.add_argument("dir2", help="merged directory 2")
     parser.add_argument("filepath", help="output merged fpdbindex path", default="")
     parser.add_argument("-m", "--mode", type=int, help="learn mode", default=0)
     parser.add_argument("-ig", "--ignore", help="ignore key word, no need to match case", default="")
@@ -15,6 +16,7 @@ if __name__ == '__main__':
 
     path0 = args.dir0
     path1 = args.dir1
+    path2 = args.dir2
     filepath = args.filepath
     dpi = args.dpi
     path_root = os.path.dirname(filepath)
@@ -49,6 +51,7 @@ if __name__ == '__main__':
 
     list0, _, ignore_count0, err_count0, user_et0 = get_index(path0, ignore=ignore)
     list1, _, ignore_count1, err_count1, user_et1 = get_index(path1, ignore=ignore)
+    list2, _, ignore_count2, err_count2, user_et2 = get_index(path2, ignore=ignore)
 
     print("#len0 = {}".format(len(list0)))
     print("#ignore_count0 = {}".format(ignore_count0))
@@ -58,19 +61,27 @@ if __name__ == '__main__':
     print("#ignore_count1 = {}".format(ignore_count1))
     print("#err_count1 = {}".format(err_count1))
     # print("#user_et1 = {}".format(user_et1))
+    print("#len2 = {}".format(len(list2)))
+    print("#ignore_count2 = {}".format(ignore_count2))
+    print("#err_count2 = {}".format(err_count2))
 
     if path_root == "":
         folder1 = os.path.abspath(path1).split('\\')
         folder1 = folder1[len(folder1) - 1]
+        folder2 = os.path.abspath(path2).split('\\')
+        folder2 = folder2[len(folder2) - 1]
     else:
         folder0 = path0.replace(path_root, "")
         folder1 = path1.replace(path_root, "")
+        folder2 = path2.replace(path_root, "")
 
     # remove \\ in front of folder path
     if folder0[0] == "\\":
         folder0 = folder0[1:]
     if folder1[0] == "\\":
         folder1 = folder1[1:]
+    if folder2[0] == "\\":
+        folder2 = folder2[1:]
 
     fp = open(filepath, "w")
 
@@ -112,12 +123,13 @@ if __name__ == '__main__':
 
     count = 0
     verify_count = 0
-    if len(list0) == len(list1):
+    if len(list0) == len(list1) and len(list0) == len(list2):
         for i in range(len(list0)):
             log = parse_file_name(list0[i])
 
             info0, info1, info2, info3, info4 = list0[i].split('\t')
             info5, info6, info7, info8, info9 = list1[i].split('\t')
+            info10, info11, info12, info13, info14 = list2[i].split('\t')
 
             if info4.find('20201002_142457_673') >= 0:
                 print()
@@ -144,119 +156,92 @@ if __name__ == '__main__':
                 output1 = "{0}\t{1}\t{2}\t{3}\t{4}".format(
                     info0, info1, info2, count, folder1 + '\\' + info9)
                 count += 1
+                output2 = "{0}\t{1}\t{2}\t{3}\t{4}".format(
+                    info10, info11, info12, count, folder2 + '\\' + info14)
+                count += 1
 
                 if info4.find("_TRY_") >= 0:
-                    try_num = int(info4[info4.find("_TRY_") +
-                                        5:info4.find("_TRY_") + 6])
+                    try_num = int(info4[info4.find("_TRY_") + 5:info4.find("_TRY_") + 6])
                     if try_num == 0:
                         verify_count = 0
                     else:
-                        verify_count += 2
+                        verify_count += 3
                 elif info4.find("_pass_") >= 0:
-                    try_num = int(info4[info4.find("_pass_") +
-                                        6:info4.find("_pass_") + 7])
+                    try_num = int(info4[info4.find("_pass_") + 6:info4.find("_pass_") + 7])
                     if try_num == 0:
                         verify_count = 0
                     else:
-                        verify_count += 2
+                        verify_count += 3
                 elif info4.find("_fail_") >= 0:
-                    try_num = int(info4[info4.find("_fail_") +
-                                        6:info4.find("_fail_") + 7])
+                    try_num = int(info4[info4.find("_fail_") + 6:info4.find("_fail_") + 7])
                     if try_num == 0:
                         verify_count = 0
                     else:
-                        verify_count += 2
+                        verify_count += 3
 
                 if log.dict['egp'] == 'None':
-                    fp.write(output0 +
-                             " : verify_count={}\n".format(verify_count))
-                    fp.write(output1 +
-                             " : verify_count={}\n".format(verify_count + 1))
+                    fp.write(output0 + " : verify_count={}\n".format(verify_count))
+                    fp.write(output1 + " : verify_count={}\n".format(verify_count + 1))
+                    fp.write(output2 + " : verify_count={}\n".format(verify_count + 2))
                 elif log.dict['irl'] == 'None' or log.dict[
                     'rls'] == 'None' or log.dict['sl'] == 'None':
                     if int(log.dict['egp']) >= try0_thresh:
                         if int(log.dict['egp']) >= try0_learning_thresh:
-                            fp.write(
-                                output0 +
-                                " : verify_count={}\n".format(verify_count))
+                            fp.write(output0 + " : verify_count={}\n".format(verify_count))
                         else:
-                            fp.write(output0 +
-                                     " : verify_count={} skip_dyn_update\n".
-                                     format(verify_count))
+                            fp.write(output0 + " : verify_count={} skip_dyn_update\n".format(verify_count))
                         if int(log.dict['egp']) >= try1_thresh:
                             if int(log.dict['egp']) >= try1_learning_thresh:
-                                fp.write(output1 +
-                                         " : verify_count={}\n".format(
-                                             verify_count + 1))
+                                fp.write(output1 + " : verify_count={}\n".format(verify_count + 1))
+                                fp.write(output2 + " : verify_count={}\n".format(verify_count + 2))
                             else:
-                                fp.write(
-                                    output1 +
-                                    " : verify_count={} skip_dyn_update\n".
-                                    format(verify_count + 1))
+                                fp.write(output1 + " : verify_count={} skip_dyn_update\n".format(verify_count + 1))
+                                fp.write(output2 + " : verify_count={} skip_dyn_update\n".format(verify_count + 2))
                     elif int(log.dict['egp']) >= try1_thresh:
                         if int(log.dict['egp']) >= try1_learning_thresh:
-                            fp.write(
-                                output1 +
-                                " : verify_count={}\n".format(verify_count))
+                            fp.write(output1 + " : verify_count={}\n".format(verify_count))
+                            fp.write(output2 + " : verify_count={}\n".format(verify_count + 1))
                         else:
-                            fp.write(output1 +
-                                     " : verify_count={} skip_dyn_update\n".
-                                     format(verify_count))
+                            fp.write(output1 + " : verify_count={} skip_dyn_update\n".format(verify_count))
+                            fp.write(output2 + " : verify_count={} skip_dyn_update\n".format(verify_count + 1))
                         verify_count -= 1
                 else:
-                    if int(log.dict['irl']) > 0 and (int(log.dict['rls']) > 50
-                                                     or
-                                                     int(log.dict['sl']) > 90):
+                    if int(log.dict['irl']) > 0 and (int(log.dict['rls']) > 50 or int(log.dict['sl']) > 90):
                         if sdk == 1:
-                            fp.write(output0 +
-                                     " : verify_count={} skip_dyn_update\n".
-                                     format(verify_count))
-                            fp.write(output1 +
-                                     " : verify_count={} skip_dyn_update\n".
-                                     format(verify_count + 1))
+                            fp.write(output0 + " : verify_count={} skip_dyn_update\n".format(verify_count))
+                            fp.write(output1 + " : verify_count={} skip_dyn_update\n".format(verify_count + 1))
+                            fp.write(output2 + " : verify_count={} skip_dyn_update\n".format(verify_count + 2))
                         else:
                             if int(log.dict['egp']) >= try1_learning_thresh:
-                                fp.write(output1 +
-                                         " : verify_count={}\n".format(
-                                             verify_count))
+                                fp.write(output1 + " : verify_count={}\n".format(verify_count))
+                                fp.write(output2 + " : verify_count={}\n".format(verify_count + 1))
                             else:
-                                fp.write(
-                                    output1 +
-                                    " : verify_count={} skip_dyn_update\n".
-                                    format(verify_count))
+                                fp.write(output1 + " : verify_count={} skip_dyn_update\n".format(verify_count))
+                                fp.write(output2 + " : verify_count={} skip_dyn_update\n".format(verify_count + 1))
                             verify_count -= 1
                     elif int(log.dict['egp']) >= try0_thresh:
                         if int(log.dict['egp']) >= try0_learning_thresh:
-                            fp.write(
-                                output0 +
-                                " : verify_count={}\n".format(verify_count))
+                            fp.write(output0 + " : verify_count={}\n".format(verify_count))
                         else:
-                            fp.write(output0 +
-                                     " : verify_count={} skip_dyn_update\n".
-                                     format(verify_count))
+                            fp.write(output0 + " : verify_count={} skip_dyn_update\n".format(verify_count))
                         if int(log.dict['egp']) >= try1_thresh:
                             if int(log.dict['egp']) >= try1_learning_thresh:
-                                fp.write(output1 +
-                                         " : verify_count={}\n".format(
-                                             verify_count + 1))
+                                fp.write(output1 + " : verify_count={}\n".format(verify_count + 1))
+                                fp.write(output2 + " : verify_count={}\n".format(verify_count + 2))
                             else:
-                                fp.write(
-                                    output1 +
-                                    " : verify_count={} skip_dyn_update\n".
-                                    format(verify_count + 1))
+                                fp.write(output1 + " : verify_count={} skip_dyn_update\n".format(verify_count + 1))
+                                fp.write(output2 + " : verify_count={} skip_dyn_update\n".format(verify_count + 2))
                     elif int(log.dict['egp']) >= try1_thresh:
                         if int(log.dict['egp']) >= try1_learning_thresh:
-                            fp.write(
-                                output1 +
-                                " : verify_count={}\n".format(verify_count))
+                            fp.write(output1 + " : verify_count={}\n".format(verify_count))
+                            fp.write(output2 + " : verify_count={}\n".format(verify_count + 1))
                         else:
-                            fp.write(output1 +
-                                     " : verify_count={} skip_dyn_update\n".
-                                     format(verify_count))
+                            fp.write(output1 + " : verify_count={} skip_dyn_update\n".format(verify_count))
+                            fp.write(output2 + " : verify_count={} skip_dyn_update\n".format(verify_count + 1))
                         verify_count -= 1
 
     else:
-        print("len(list0) {} != len(list1) {}".format(len(list0), len(list1)))
+        print("len(list0) {} != len(list1) {} or != len(list1) {}".format(len(list0), len(list1), len(list2)))
     pass
 
     fp.close()

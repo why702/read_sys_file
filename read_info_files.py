@@ -17,7 +17,7 @@ def list_files(dir_path, csv_file):
                     continue
 
                 file_path = os.path.join(root, name)
-                print(file_path)
+                # print(file_path)
 
                 f = open(file_path)
 
@@ -41,6 +41,7 @@ def list_files(dir_path, csv_file):
                 output = output.replace("\info.txt", "")
                 output = output.replace("\\", "")
                 fp.writelines(output + "\n")
+                print(output)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
